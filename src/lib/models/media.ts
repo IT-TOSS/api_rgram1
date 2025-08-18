@@ -62,10 +62,20 @@ export const createMedia = async (
   
   // Upload to Cloudinary using buffer
   const customId = uuidv4();
-  const cloudinaryResult = await uploadToCloudinary(mediaData.buffer, `media/${mediaData.userId}`, customId) as {
-    public_id: string;
-    secure_url: string;
-  };
+  let cloudinaryResult;
+  try {
+    cloudinaryResult = await uploadToCloudinary(mediaData.buffer, `media/${mediaData.userId}`, customId) as {
+      public_id: string;
+      secure_url: string;
+    };
+    
+    if (!cloudinaryResult || !cloudinaryResult.public_id || !cloudinaryResult.secure_url) {
+      throw new Error('Invalid response from Cloudinary');
+    }
+  } catch (error) {
+    console.error('Cloudinary upload error in createMedia:', error);
+    throw new Error(`Cloudinary upload failed: ${(error as Error).message}`);
+  }
   
   // Create media record in database
   const newMedia = new MediaModel({

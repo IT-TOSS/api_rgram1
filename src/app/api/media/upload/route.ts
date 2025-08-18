@@ -81,9 +81,30 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    
+    // Provide more detailed error information
+    let errorMessage = 'File upload failed';
+    let errorDetails = (error as Error).message;
+    let statusCode = 500;
+    
+    // Handle specific error cases
+    if (errorDetails.includes('File size exceeds')) {
+      errorMessage = 'File too large';
+      statusCode = 413; // Payload Too Large
+    } else if (errorDetails.includes('Invalid file type')) {
+      errorMessage = 'Invalid file type';
+      statusCode = 415; // Unsupported Media Type
+    } else if (errorDetails.includes('Cloudinary')) {
+      errorMessage = 'Cloud storage error';
+    }
+    
     return NextResponse.json(
-      { error: 'File upload failed', details: (error as Error).message },
-      { status: 500 }
+      { 
+        error: errorMessage, 
+        details: errorDetails,
+        timestamp: new Date().toISOString()
+      },
+      { status: statusCode }
     );
   }
 }

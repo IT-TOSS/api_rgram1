@@ -33,23 +33,20 @@ export const uploadToCloudinary = async (
 
     let result;
     if (Buffer.isBuffer(fileData)) {
-      // If fileData is a Buffer, use upload_stream with a Promise
-      result = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          options,
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        );
-        
-        // Convert Buffer to Stream and pipe to uploadStream
-        const { Readable } = require('stream');
-        const readableStream = new Readable();
-        readableStream.push(fileData);
-        readableStream.push(null);
-        readableStream.pipe(uploadStream);
-      });
+      // For Buffer uploads, use the buffer upload method which is more compatible with serverless environments
+      options.resource_type = 'auto';
+      
+      // Convert buffer to base64 string for upload
+      // Check if the buffer is too large (Cloudinary has a 10MB limit for base64 uploads)
+      if (fileData.length > 10 * 1024 * 1024) {
+        throw new Error('File size exceeds 10MB limit for Cloudinary upload');
+      }
+      
+      const base64Data = fileData.toString('base64');
+      const dataURI = `data:application/octet-stream;base64,${base64Data}`;
+      
+      // Upload the base64 data directly
+      result = await cloudinary.uploader.upload(dataURI, options);
     } else {
       // If fileData is a path string, use regular upload
       result = await cloudinary.uploader.upload(fileData, options);
