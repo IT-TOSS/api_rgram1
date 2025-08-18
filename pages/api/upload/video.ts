@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Validate video format
       const videoFormats = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'];
       videoExtension = (video.split(';')[0].split('/')[1] || '').toLowerCase();
-      if (!videoFormats.includes(videoExtension)) {
+      if (videoExtension && !videoFormats.includes(videoExtension)) {
         return res.status(400).json({
           success: false,
           message: `Invalid video format. Supported formats: ${videoFormats.join(', ')}`

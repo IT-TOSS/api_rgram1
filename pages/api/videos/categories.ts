@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Format categories
-    const formattedCategories = categories.map(cat => ({
+    const formattedCategories = categories.map((cat: { _id: string; count: number }) => ({
       name: cat._id,
       count: cat.count,
       percentage: Math.round((cat.count / totalVideos) * 100)

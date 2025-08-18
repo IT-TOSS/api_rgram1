@@ -45,7 +45,7 @@ export default async function handler(
       .select('following')
       .lean();
 
-    const followingIds = following.map(f => f.following);
+    const followingIds = following.map((f: { following: string }) => f.following);
 
     // Get posts from followed users and current user
     const posts = await (Post as any).find({

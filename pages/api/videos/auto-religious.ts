@@ -118,7 +118,7 @@ export default async function handler(
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: error.message
+      error: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
     });
   }
 }

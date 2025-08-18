@@ -46,8 +46,9 @@ export default async function handler(
 
     // 2. Get all videos recursively from videos folder
     const videosPath = path.join(basePublicPath, 'videos');
-    if (fs.existsSync(videosPath)) {
-      function scanDirectory(dirPath: string) {
+    
+    // Define the scan directory function outside the if block
+    const scanDirectory = function(dirPath: string) {
         const items = fs.readdirSync(dirPath);
         
         items.forEach(item => {
@@ -71,7 +72,7 @@ export default async function handler(
               : imageFiles.length > 0 
                 ? `/images/religious/hinduism/${imageFiles[0]}` // Use first image as default
                 : '/default-thumbnail.jpg';
-
+                
             mediaItems.push({
               id: `video_${item}`,
               type: 'video',
@@ -82,8 +83,10 @@ export default async function handler(
             });
           }
         });
-      }
+      };
 
+    if (fs.existsSync(videosPath)) {
+      // Call the scanDirectory function
       scanDirectory(videosPath);
     }
 

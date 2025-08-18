@@ -73,8 +73,10 @@ export default async function handler(
 
     await newAdmin.save();
 
-    const adminData = newAdmin.toObject();
-    delete adminData.password;
+    const adminData: any = newAdmin.toObject();
+    if (adminData.password) {
+      delete adminData.password;
+    }
 
     return res.status(201).json({
       message: 'Admin user created successfully.',

@@ -97,8 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { category, maxResults = 10 } = req.query;
-        let videosToReturn = [];
+    const { category, maxResults = 10 } = req.query;
+    let videosToReturn: any[] = [];
 
         // If category is specified, filter categories
         const categoriesToSearch = category 
@@ -134,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({
             success: false,
             message: 'Error fetching religious videos',
-            error: error.message
+            error: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
         });
     }
 }

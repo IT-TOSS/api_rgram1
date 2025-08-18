@@ -1,8 +1,8 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IMedia extends Document {
-  _id: string;
-  userId: string;
+  _id: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   filename: string;
   originalFilename: string;
   path: string;
@@ -16,7 +16,7 @@ export interface IMedia extends Document {
 const MediaSchema = new Schema<IMedia>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
