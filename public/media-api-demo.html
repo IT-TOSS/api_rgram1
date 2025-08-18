@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Management API Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #666;
+        }
+        .media-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .media-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .media-info {
+            padding: 8px;
+            font-size: 12px;
+        }
+        .media-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+        }
+        .media-actions button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Media Management API Demo</h1>
+    <p>This demo shows how to use the Media Management API to upload, view, rename, replace, and delete media files.</p>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="upload">Upload</div>
+        <div class="tab" data-tab="list">List Media</div>
+        <div class="tab" data-tab="manage">Manage Media</div>
+    </div>
+    
+    <div id="upload" class="tab-content active section">
+        <h2>Upload Media</h2>
+        <form id="upload-form">
+            <div class="form-group">
+                <label for="file">Select File (Image or Video):</label>
+                <input type="file" id="file" name="file" accept="image/*,video/*" required>
+            </div>
+            <div class="form-group">
+                <label for="token">Authentication Token:</label>
+                <input type="text" id="token" name="token" placeholder="Enter your JWT token" required>
+            </div>
+            <button type="submit">Upload</button>
+            <div id="upload-loading" class="loading">Uploading...</div>
+        </form>
+        <div id="upload-response" class="response"></div>
+    </div>
+    
+    <div id="list" class="tab-content section">
+        <h2>List Media Files</h2>
+        <div class="form-group">
+            <label for="list-token">Authentication Token:</label>
+            <input type="text" id="list-token" name="token" placeholder="Enter your JWT token" required>
+        </div>
+        <div class="form-group">
+            <label for="media-type">Media Type:</label>
+            <select id="media-type">
+                <option value="">All</option>
+                <option value="image">Images</option>
+                <option value="video">Videos</option>
+            </select>
+        </div>
+        <button id="list-button">List Media</button>
+        <div id="list-loading" class="loading">Loading...</div>
+        <div id="media-list" class="media-list"></div>
+        <div id="list-response" class="response"></div>
+    </div>
+    
+    <div id="manage" class="tab-content section">
+        <h2>Manage Media</h2>
+        <div class="form-group">
+            <label for="media-id">Media ID:</label>
+            <input type="text" id="media-id" placeholder="Enter media ID" required>
+        </div>
+        <div class="form-group">
+            <label for="manage-token">Authentication Token:</label>
+            <input type="text" id="manage-token" placeholder="Enter your JWT token" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Action:</label>
+            <select id="action-type">
+                <option value="get">Get Details</option>
+                <option value="rename">Rename</option>
+                <option value="replace">Replace</option>
+                <option value="delete">Delete</option>
+            </select>
+        </div>
+        
+        <div id="rename-options" style="display: none;">
+            <div class="form-group">
+                <label for="new-filename">New Filename:</label>
+                <input type="text" id="new-filename" placeholder="Enter new filename (without extension)">
+            </div>
+        </div>
+        
+        <div id="replace-options" style="display: none;">
+            <div class="form-group">
+                <label for="replacement-file">Replacement File:</label>
+                <input type="file" id="replacement-file" accept="image/*,video/*">
+            </div>
+        </div>
+        
+        <button id="manage-button">Execute Action</button>
+        <div id="manage-loading" class="loading">Processing...</div>
+        <div id="manage-response" class="response"></div>
+    </div>
+    
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Show/hide action options
+        document.getElementById('action-type').addEventListener('change', function() {
+            const action = this.value;
+            document.getElementById('rename-options').style.display = action === 'rename' ? 'block' : 'none';
+            document.getElementById('replace-options').style.display = action === 'replace' ? 'block' : 'none';
+        });
+        
+        // Helper functions
+        function showLoading(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+        
+        function hideLoading(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        function displayResponse(id, data) {
+            document.getElementById(id).textContent = JSON.stringify(data, null, 2);
+        }
+        
+        // Upload form submission
+        document.getElementById('upload-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showLoading('upload-loading');
+            
+            const fileInput = document.getElementById('file');
+            const token = document.getElementById('token').value;
+            
+            if (!fileInput.files[0]) {
+                displayResponse('upload-response', { error: 'Please select a file' });
+                hideLoading('upload-loading');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/api/media/manage', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                displayResponse('upload-response', data);
+            } catch (error) {
+                displayResponse('upload-response', { error: error.message });
+            } finally {
+                hideLoading('upload-loading');
+            }
+        });
+        
+        // List media
+        document.getElementById('list-button').addEventListener('click', async function() {
+            showLoading('list-loading');
+            
+            const token = document.getElementById('list-token').value;
+            const type = document.getElementById('media-type').value;
+            
+            try {
+                const url = new URL('/api/media/manage', window.location.origin);
+                if (type) url.searchParams.append('type', type);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                displayResponse('list-response', data);
+                
+                // Display media items
+                const mediaList = document.getElementById('media-list');
+                mediaList.innerHTML = '';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    data.data.forEach(item => {
+                        const mediaItem = document.createElement('div');
+                        mediaItem.className = 'media-item';
+                        
+                        if (item.type === 'image') {
+                            mediaItem.innerHTML = `
+                                <img src="${item.url}" alt="${item.originalFilename}">
+                                <div class="media-info">
+                                    <div>ID: ${item.id}</div>
+                                    <div>Name: ${item.originalFilename}</div>
+                                </div>
+                                <div class="media-actions">
+                                    <button onclick="selectMedia('${item.id}')">Select</button>
+                                </div>
+                            `;
+                        } else {
+                            mediaItem.innerHTML = `
+                                <video src="${item.url}" controls></video>
+                                <div class="media-info">
+                                    <div>ID: ${item.id}</div>
+                                    <div>Name: ${item.originalFilename}</div>
+                                </div>
+                                <div class="media-actions">
+                                    <button onclick="selectMedia('${item.id}')">Select</button>
+                                </div>
+                            `;
+                        }
+                        
+                        mediaList.appendChild(mediaItem);
+                    });
+                } else {
+                    mediaList.innerHTML = '<p>No media files found</p>';
+                }
+            } catch (error) {
+                displayResponse('list-response', { error: error.message });
+            } finally {
+                hideLoading('list-loading');
+            }
+        });
+        
+        // Select media for management
+        function selectMedia(id) {
+            document.getElementById('media-id').value = id;
+            document.querySelectorAll('.tab')[2].click(); // Switch to manage tab
+        }
+        
+        // Manage media
+        document.getElementById('manage-button').addEventListener('click', async function() {
+            showLoading('manage-loading');
+            
+            const mediaId = document.getElementById('media-id').value;
+            const token = document.getElementById('manage-token').value;
+            const action = document.getElementById('action-type').value;
+            
+            if (!mediaId) {
+                displayResponse('manage-response', { error: 'Please enter a media ID' });
+                hideLoading('manage-loading');
+                return;
+            }
+            
+            try {
+                let url, method, body;
+                
+                switch (action) {
+                    case 'get':
+                        url = `/api/media/manage?id=${mediaId}`;
+                        method = 'GET';
+                        break;
+                        
+                    case 'rename':
+                        const newFilename = document.getElementById('new-filename').value;
+                        if (!newFilename) {
+                            displayResponse('manage-response', { error: 'Please enter a new filename' });
+                            hideLoading('manage-loading');
+                            return;
+                        }
+                        url = `/api/media/manage?id=${mediaId}&newFilename=${encodeURIComponent(newFilename)}`;
+                        method = 'PUT';
+                        break;
+                        
+                    case 'replace':
+                        const replacementFile = document.getElementById('replacement-file').files[0];
+                        if (!replacementFile) {
+                            displayResponse('manage-response', { error: 'Please select a replacement file' });
+                            hideLoading('manage-loading');
+                            return;
+                        }
+                        url = `/api/media/manage?id=${mediaId}`;
+                        method = 'PUT';
+                        body = new FormData();
+                        body.append('file', replacementFile);
+                        break;
+                        
+                    case 'delete':
+                        url = `/api/media/manage?id=${mediaId}`;
+                        method = 'DELETE';
+                        break;
+                }
+                
+                const options = {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                };
+                
+                if (body) {
+                    options.body = body;
+                } else if (method !== 'GET' && method !== 'DELETE') {
+                    options.headers['Content-Type'] = 'application/json';
+                }
+                
+                const response = await fetch(url, options);
+                const data = await response.json();
+                displayResponse('manage-response', data);
+                
+                // If action was successful and it was a delete or rename, refresh the list
+                if (data.success && (action === 'delete' || action === 'rename' || action === 'replace')) {
+                    document.getElementById('list-token').value = token;
+                    document.getElementById('list-button').click();
+                }
+            } catch (error) {
+                displayResponse('manage-response', { error: error.message });
+            } finally {
+                hideLoading('manage-loading');
+            }
+        });
+    </script>
+</body>
+</html>
