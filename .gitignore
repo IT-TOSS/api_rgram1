@@ -17,6 +17,11 @@ node_modules
 .DS_Store
 *.pem
 
+# Ignore environment files
+.env.local
+.env
+.env.*
+
 # debug
 npm-debug.log*
 yarn-debug.log*
