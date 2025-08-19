@@ -38,7 +38,7 @@ async function connectToDatabase() {
       bufferCommands: false,
     };
 
-    mongooseCache.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+    mongooseCache.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongooseInstance) => {
       return mongooseInstance;
     }) as Promise<typeof mongoose>;
   }

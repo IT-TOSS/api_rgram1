@@ -14,20 +14,26 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(user: User): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined');
+  }
   return sign(
     { 
       id: user._id ? user._id.toString() : '',
       email: user.email,
       username: user.username 
     },
-    JWT_SECRET,
+    JWT_SECRET as string,
     { expiresIn: '7d' }
   );
 }
 
 export function verifyToken(token: string): { id: string; email: string; username: string } | null {
   try {
-    const decoded = verify(token, JWT_SECRET) as { id: string; email: string; username: string };
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    const decoded = verify(token, JWT_SECRET as string) as { id: string; email: string; username: string };
     return decoded;
   } catch (error) {
     console.error('Token verification error:', error);
