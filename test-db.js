@@ -1,8 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-// Define the MongoDB URI directly from .env or use the hardcoded value
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tossitswayam:Qwert123%23%24@cluster0.tpk0nle.mongodb.net/api_rgram?retryWrites=true&w=majority';
+// Define the MongoDB URI from .env
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/api_rgram';
 
 async function checkDatabase() {
   try {

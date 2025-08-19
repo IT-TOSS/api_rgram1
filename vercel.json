@@ -1,25 +1,12 @@
 {
-  "version": 2,
   "env": {
     "MOCK_GOOGLE_AUTH": "true",
-    "GOOGLE_CALLBACK_URL": "https://api-rgram1.vercel.app/api/auth/google/callback",
-    "NEXT_PUBLIC_VERCEL_URL": "${VERCEL_URL}"
+    "GOOGLE_CALLBACK_URL": "https://api-rgram1.vercel.app/api/auth/google/callback"
   },
   "build": {
     "env": {
       "MOCK_GOOGLE_AUTH": "true",
-      "GOOGLE_CALLBACK_URL": "https://api-rgram1.vercel.app/api/auth/google/callback",
-      "NEXT_PUBLIC_VERCEL_URL": "${VERCEL_URL}"
+      "GOOGLE_CALLBACK_URL": "https://api-rgram1.vercel.app/api/auth/google/callback"
     }
-  },
-  "routes": [
-    {
-      "src": "/api/mediaupload",
-      "dest": "/api/mediaupload"
-    },
-    {
-      "src": "/upload/(.*)",
-      "dest": "/api/mediaupload?filePath=/upload/$1"
-    }
-  ]
+  }
 }

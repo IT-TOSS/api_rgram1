@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
 import { generateUniqueFilename, getMimeType } from '@/lib/fileUtils';
-import { stat, readFile } from 'fs/promises';
-import config, { getMediaUrl } from '@/lib/config';
 
 // Use the new route segment config format
 export const dynamic = 'force-dynamic';
@@ -37,72 +35,32 @@ async function saveFileToLocal(file: File, fileType: string, customId?: string):
   
   // Determine the upload directory based on file type
   let uploadDir = '';
-  let uploadType = '';
-  
   if (file.type.startsWith('image/')) {
-    uploadDir = path.join(process.cwd(), 'public', config.media.imagePath);
-    uploadType = 'image';
+    uploadDir = path.join(process.cwd(), 'public', 'upload', 'image');
   } else if (file.type.startsWith('video/')) {
-    uploadDir = path.join(process.cwd(), 'public', config.media.videoPath);
-    uploadType = 'video';
+    uploadDir = path.join(process.cwd(), 'public', 'upload', 'video');
   } else {
     // Default to image directory for other file types
-    uploadDir = path.join(process.cwd(), 'public', config.media.imagePath);
-    uploadType = 'image';
-  }
-  
-  // Check if file type is allowed
-  const isAllowedType = 
-    (uploadType === 'image' && config.media.allowedImageTypes.includes(file.type)) ||
-    (uploadType === 'video' && config.media.allowedVideoTypes.includes(file.type));
-    
-  if (!isAllowedType) {
-    throw new Error(`File type ${file.type} is not allowed`);
-  }
-  
-  // Check file size
-  if (file.size > config.media.maxFileSize) {
-    throw new Error(`File size exceeds the maximum allowed size of ${config.media.maxFileSize / (1024 * 1024)}MB`);
+    uploadDir = path.join(process.cwd(), 'public', 'upload', 'image');
   }
   
   // Ensure the upload directory exists
-  try {
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-  } catch (error) {
-    console.error('Error creating directory:', error);
-    // In production on Vercel, we might not be able to create directories
-    // This is handled gracefully to prevent errors
-    if (process.env.VERCEL_ENV !== 'production') {
-      throw error;
-    }
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
   }
   
   // Create the file path
   const filePath = path.join(uploadDir, fileName);
   
-  try {
-    // Write the file to disk
-    fs.writeFileSync(filePath, buffer);
-  } catch (error) {
-    console.error('Error writing file:', error);
-    // In production on Vercel, we might not be able to write files
-    // This is handled gracefully to prevent errors
-    if (process.env.VERCEL_ENV !== 'production') {
-      throw error;
-    }
-  }
+  // Write the file to disk
+  fs.writeFileSync(filePath, buffer);
   
   return {
     fileName,
-    filePath: `/upload/${uploadType}/${fileName}`,
+    filePath: `/upload/${file.type.startsWith('image/') ? 'image' : 'video'}/${fileName}`,
     fileSize: file.size
   };
 }
-
-// Use config for environment detection
-const isVercelProduction = config.isVercelProduction;
 
 export async function POST(request: Request) {
   try {
@@ -132,11 +90,6 @@ export async function POST(request: Request) {
     // Save file to local storage
     const { fileName, filePath, fileSize } = await saveFileToLocal(file, fileType, customId);
     
-    // Generate the URL for accessing the file
-  const apiUrl = isVercelProduction 
-    ? `/api/mediaupload?filePath=${encodeURIComponent(filePath)}` 
-    : getMediaUrl(filePath);
-    
     // Create response with file information
     return NextResponse.json({
       success: true,
@@ -147,7 +100,7 @@ export async function POST(request: Request) {
         filePath,
         fileType: file.type,
         fileSize,
-        url: apiUrl, // URL to access the file
+        url: filePath, // URL to access the file
         customId: customId || uuidv4(),
       },
     });
@@ -175,71 +128,6 @@ export async function POST(request: Request) {
         timestamp: new Date().toISOString()
       },
       { status: statusCode }
-    );
-  }
-}
-
-// Handle GET request to retrieve a file
-export async function GET(request: Request) {
-  try {
-    // Get file path from URL parameters
-    const url = new URL(request.url);
-    const filePath = url.searchParams.get('filePath');
-    const fileId = url.searchParams.get('fileId');
-    const fileType = url.searchParams.get('fileType') || 'image';
-    
-    if (!filePath && !fileId) {
-      return NextResponse.json(
-        { error: 'File path or file ID is required' },
-        { status: 400 }
-      );
-    }
-    
-    let fullPath = '';
-    
-    if (filePath) {
-      // Construct the full path to the file
-      fullPath = path.join(process.cwd(), 'public', filePath);
-    } else if (fileId) {
-      // Construct the path based on file ID and type
-      const directory = fileType === 'video' ? 'video' : 'image';
-      fullPath = path.join(process.cwd(), 'public', 'upload', directory, fileId);
-    }
-    
-    // Check if file exists
-    try {
-      await stat(fullPath);
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'File not found' },
-        { status: 404 }
-      );
-    }
-    
-    // Read the file
-    const fileBuffer = await readFile(fullPath);
-    
-    // Determine content type
-    const contentType = getMimeType(fullPath);
-    
-    // Return the file - convert Buffer to ArrayBuffer for Blob
-    return new NextResponse(new Blob([new Uint8Array(fileBuffer)]), {
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${path.basename(fullPath)}"`,
-        'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
-      },
-    });
-  } catch (error) {
-    console.error('Get file error:', error);
-    
-    return NextResponse.json(
-      { 
-        error: 'Failed to retrieve file', 
-        details: (error as Error).message,
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
     );
   }
 }
