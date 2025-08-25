@@ -12,7 +12,7 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Enable static exports for pages that don't require server-side rendering
+  // Disable static optimization for API routes
   output: 'standalone',
 
   // Configure webpack for optimizations
