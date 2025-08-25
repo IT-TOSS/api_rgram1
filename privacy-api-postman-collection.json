@@ -1,0 +1,200 @@
+{
+  "info": {
+    "name": "Privacy API Collection",
+    "description": "Collection for testing user account privacy management APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Privacy Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_TOKEN}}",
+            "type": "text",
+            "description": "JWT authentication token"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "privacy"]
+        },
+        "description": "Retrieve the current privacy status and detailed information about what it means"
+      },
+      "response": []
+    },
+    {
+      "name": "Set Account to Private",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_TOKEN}}",
+            "type": "text",
+            "description": "JWT authentication token"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isPrivate\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "privacy"]
+        },
+        "description": "Set the user account to private mode"
+      },
+      "response": []
+    },
+    {
+      "name": "Set Account to Public",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_TOKEN}}",
+            "type": "text",
+            "description": "JWT authentication token"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isPrivate\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "privacy"]
+        },
+        "description": "Set the user account to public mode"
+      },
+      "response": []
+    },
+    {
+      "name": "Toggle Privacy Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_TOKEN}}",
+            "type": "text",
+            "description": "JWT authentication token"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/toggle-privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "toggle-privacy"]
+        },
+        "description": "Toggle the account between public and private (opposite of current status)"
+      },
+      "response": []
+    },
+    {
+      "name": "Test Invalid Input",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_TOKEN}}",
+            "type": "text",
+            "description": "JWT authentication token"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isPrivate\": \"invalid_value\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "privacy"]
+        },
+        "description": "Test input validation with invalid boolean value"
+      },
+      "response": []
+    },
+    {
+      "name": "Test Unauthorized Access",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/user/privacy",
+          "host": ["{{BASE_URL}}"],
+          "path": ["api", "user", "privacy"]
+        },
+        "description": "Test access without authentication token"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:5001",
+      "type": "string",
+      "description": "Base URL for the API server"
+    },
+    {
+      "key": "JWT_TOKEN",
+      "value": "your_jwt_token_here",
+      "type": "string",
+      "description": "JWT authentication token - replace with actual token"
+    }
+  ]
+}
